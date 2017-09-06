@@ -128,7 +128,7 @@ def update_parameters(parameters,grads,learning_rate = 1):
 	return parameters
 
 # 整合
-def nn_model(X,Y,n_h,num_interations = 10,learning_rate = 0.00001,print_cost = False):
+def nn_model(X,Y,XT,YT,n_h,num_interations = 10,learning_rate = 0.00001,print_cost = False):
 	n_x = layer_sizes(X,n_h,Y)[0]
 	n_y = layer_sizes(X,n_h,Y)[2]
 
@@ -140,6 +140,7 @@ def nn_model(X,Y,n_h,num_interations = 10,learning_rate = 0.00001,print_cost = F
 
 	# 迭代
 	costs = []
+	accuracies = []
 	for i in range(num_interations):
 		# 向前传播
 		A2,cache = forward_propagation(X,parameters)
@@ -154,8 +155,12 @@ def nn_model(X,Y,n_h,num_interations = 10,learning_rate = 0.00001,print_cost = F
 			print("cost:"+str(cost)+"   interation times:"+str(i))
 		# 记录cost
 		costs.append(cost)
+		# 记录测试集上的效果
+		if i % 10 == 0:
+			YP,accuracy = predict(parameters,XT,YT)
+			accuracies.append(accuracy)
 	# 返回最终参数
-	return parameters,costs
+	return parameters,costs,accuracies
 
 
 # 预测
