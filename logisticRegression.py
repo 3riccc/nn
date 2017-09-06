@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 import pickle
 
@@ -107,7 +107,7 @@ def optimeze(w,b,X,Y,n_iterations,learning_rate,print_cost = False):
 		
 		# cost
 		costs.append(cost)
-		if print_cost and i % 100 == 0:
+		if print_cost and i % 1000 == 0:
 			print("cost:"+str(cost)+"  iteration times:"+str(i))
 		
 		# 反相传播
@@ -139,11 +139,20 @@ def predict(w,b,X):
 			y_prediction[0][i] = 0
 	return y_prediction
 
+# 展示costs
+def show_costs(costs):
+	# costs = np.squeeze(costs)
+	plt.plot(costs)
+	plt.ylabel('cost')
+	plt.xlabel('iterations (per hundreds)')
+	plt.show()
 
-# 
+# 初始化参数
 w,b = initialize_with_zeros(X.shape[0])
-params,cost = optimeze(w,b,X,Y,20000,0.0000000000005,True)
-
+# 迭代
+params,costs = optimeze(w,b,X,Y,300000,0.0000000000005,True)
+# 预测
 YP = predict(params['w'],params['b'],XT)
-
 print("最终计算精度:"+str(format(100 - np.mean(np.abs(YP - YT)) * 100)))
+# 展示cost下降曲线
+show_costs(costs)
