@@ -142,7 +142,7 @@ def predict(w,b,X):
 
 # 
 w,b = initialize_with_zeros(X.shape[0])
-params,cost = optimeze(w,b,X,Y,10,0.0000000000005,True)
+params,cost = optimeze(w,b,X,Y,20000,0.0000000000005,True)
 
 YP = predict(params['w'],params['b'],XT)
 
