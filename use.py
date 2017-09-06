@@ -16,6 +16,7 @@ with open('res/YT1.pickle','rb') as f4:
 # -------------------------以上代码获取数据，不必管-------------------------
 import oneHiddenLayer as oh
 
+
 parameters,costs,accuracies = oh.nn_model(X,Y,XT,YT,42,10000,0.005,True)
 
 
