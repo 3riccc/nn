@@ -13,12 +13,14 @@ with open('res/YT1.pickle','rb') as f4:
 
 # -------------------------以上代码获取数据，不必管-------------------------
 
-parameters = bn.initialize_parameters_deep(X,[2,3,1])
+# parameters = bn.initialize_parameters_deep(X,[2,3,1])
 
-# 向前传播
-AS,ZS = bn.L_model_forward(X,parameters)
-# 计算cost
-cost = bn.compute_cost(AS[len(AS)-1],Y)
-# 反向传播
-dA,dW,db = bn.L_model_backward(AS,Y)
-
+# # 向前传播
+# AS,ZS = bn.L_model_forward(X,parameters)
+# # 计算cost
+# cost = bn.compute_cost(AS[len(AS)-1],Y)
+# # 反向传播
+# grads = bn.L_model_backward(AS,ZS,Y,parameters)
+# # 更新参数
+# parameters = bn.update_parameters(parameters,grads,0.001)
+parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,[2,3,4,1],100,5,False,False)

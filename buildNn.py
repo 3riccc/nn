@@ -11,7 +11,7 @@ def relu(Z):
 	assert(A.shape == Z.shape)
 	cache = Z
 	return A,cache
-def relu_backward(dA, cache):
+def relu_backward(dA, Z):
 	"""
 	Implement the backward propagation for a single RELU unit.
 	Arguments:
@@ -20,7 +20,6 @@ def relu_backward(dA, cache):
 	Returns:
 	dZ -- Gradient of the cost with respect to Z
 	"""
-	Z = cache
 	dZ = np.array(dA, copy=True) # just converting dz to a correct object.
 
 	# When z <= 0, you should set dz to 0 as well. 
@@ -29,7 +28,7 @@ def relu_backward(dA, cache):
 	assert (dZ.shape == Z.shape)
 
 	return dZ
-def sigmoid_backward(dA, cache):
+def sigmoid_backward(dA, Z):
 	"""
 	Implement the backward propagation for a single SIGMOID unit.
 	Arguments:
@@ -38,9 +37,7 @@ def sigmoid_backward(dA, cache):
 	Returns:
 	dZ -- Gradient of the cost with respect to Z
 	"""
-	Z = cache
-
-	s = 1/(1+np.exp(-Z))
+	s = 1/(1.+np.exp(-Z))
 	dZ = dA * s * (1-s)
 	assert (dZ.shape == Z.shape)
 	return dZ
@@ -57,7 +54,7 @@ def initialize_parameters_deep(X,layer_dims):
 	parameters = {}
 	for i in range(1,L):
 		# 初始化向量w和b
-		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.01
+		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.001
 		parameters["b"+str(i)] = np.zeros((layer_dims[i],1))
 
 		# 确认形状
@@ -121,26 +118,29 @@ def compute_cost(AL,Y):
 	return cost
 
 # 一个层的反向传播
-def linear_backward(dZ,A_prev):
-	m = A_prev.shape[1]
-
-	dW = 1./m * np.dot(Z,A_prev.T)
-	db = 1./m * np.sum(np.matrix(dZ), axis = 1)
+def backward(dA_after,Z,A,W,activation):
+	m = Z.shape[1]
+	if activation == "sigmoid":
+		# dz，用于计算da_prev,dw,db
+		dZ = sigmoid_backward(dA_after,Z)
+	else:
+		dZ = relu_backward(dA_after,Z)
+	# 计算da，dw，db
+	dW = 1. / m * np.dot(dZ,A.T)
+	db = 1. / m * np.sum(dZ,axis=1,keepdims = True)
 	dA_prev = np.dot(W.T,dZ)
 
 	return dA_prev,dW,db
 
+# 计算最后一层的dAL
 def last_backward(AL,Y):
 	dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
-	
-	return dA_prev,dW,db
-# 反向传播
-def linear_activation_backward(dA,cache,activation):
-	return
+	return dAL
+
 
 
 # 整体的反向传播
-def L_model_backward(AS,Y):
+def L_model_backward(AS,ZS,Y,parameters):
 	# 记录导数
 	grads = {}
 	# 层数,AS包含输入层，所以AS-1是所有神经元层数
@@ -149,7 +149,64 @@ def L_model_backward(AS,Y):
 	AL = AS[L]
 
 	# 计算最后一层的导数
-	grads["dA"+str(L)],grads["dW"+str(L)],grads["db"+str(L)] = 
+	dAL = last_backward(AL,Y)
+	# 倒着计算每一层的偏导
+	dA_after = dAL
+	for i in reversed(range(1,L+1)):
+		if(i == L):
+			activation = "sigmoid"
+		else:
+			activation = "relu"
+		# 传播
+		dA_after,grads["dW"+str(i)],grads["db"+str(i)] = backward(dA_after,ZS[i-1],AS[i-1],parameters["W"+str(i)],activation)
+	return grads
 
-	return 1,2,3
+# 更新参数
+def update_parameters(parameters,grads,learning_rate):
+	# 有多少层
+	L = int(len(grads) / 2)
+	# 一层一层更新
+	for i in range(1,L+1):
+		parameters["W"+str(i)] = parameters["W"+str(i)] - learning_rate * grads["dW"+str(i)]
+		parameters["b"+str(i)] = parameters["b"+str(i)] - learning_rate * grads["db"+str(i)]
+	return parameters
 
+# 预测结果是否准确
+def predict(parameters,XT,YT):
+	# 向前传播
+	AS,ZS = L_model_forward(XT,parameters)
+	# Y的预测值
+	YP = AS[len(AS)-1]
+	YP = np.array([0 if i <= 0.5 else 1 for i in np.squeeze(YP)])
+	# 和测试结果之间的精度差距
+	accuracy = format(100 - np.mean(np.abs(YP - YT)) * 100)
+	return YP,accuracy
+
+def nn_model(X,Y,XT,YT,structure,num_interations,learning_rate,print_cost = False,print_accu=False):
+	# 初始化
+	parameters = initialize_parameters_deep(X,structure)
+	# 循环
+	costs = []
+	accuracies = []
+	for i in range(num_interations):
+		# 向前传播
+		AS,ZS = L_model_forward(X,parameters)
+		# 计算cost
+		cost = compute_cost(AS[len(AS)-1],Y)
+		costs.append(cost)
+		# 反向传播
+		grads = L_model_backward(AS,ZS,Y,parameters)
+		print(grads["dW2"])
+		print(grads["db2"])
+		# 更新参数
+		parameters = update_parameters(parameters,grads,learning_rate)
+		# 打印输出 
+		if print_cost and i % 10 == 0:
+			print("cost:"+str(cost)+"  interation times:"+str(i))
+		# 打印测试结果
+		if i % 10 == 0:
+			YP,accuracy = predict(parameters,XT,YT)
+			print("accuracy:"+str(accuracy)+"%")
+			accuracies.append(accuracy)
+	# 返回最终参数，cost和精度
+	return parameters,costs,accuracies
