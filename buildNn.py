@@ -54,7 +54,7 @@ def initialize_parameters_deep(X,layer_dims):
 	parameters = {}
 	for i in range(1,L):
 		# 初始化向量w和b
-		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.001
+		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.0001
 		parameters["b"+str(i)] = np.zeros((layer_dims[i],1))
 
 		# 确认形状
@@ -79,7 +79,7 @@ def linear_activation_forward(A_prev,W,b,activation):
 	if activation == "sigmoid":
 		A,activation_cache = sigmoid(Z)
 	elif activation == "relu":
-		A,activation_cache = relu(Z)
+		A,activation_cache = sigmoid(Z)
 	
 	return A,activation_cache
 
@@ -124,11 +124,15 @@ def backward(dA_after,Z,A,W,activation):
 		# dz，用于计算da_prev,dw,db
 		dZ = sigmoid_backward(dA_after,Z)
 	else:
-		dZ = relu_backward(dA_after,Z)
+		dZ = sigmoid_backward(dA_after,Z)
 	# 计算da，dw，db
 	dW = 1. / m * np.dot(dZ,A.T)
-	db = 1. / m * np.sum(dZ,axis=1,keepdims = True)
+	db = 1. / m * np.sum(dZ,axis=1,keepdims=True)
 	dA_prev = np.dot(W.T,dZ)
+
+	# 确认形状
+	assert(dW.shape == W.shape)
+	assert(dA_prev.shape == A.shape)
 
 	return dA_prev,dW,db
 
@@ -171,13 +175,18 @@ def update_parameters(parameters,grads,learning_rate):
 		parameters["b"+str(i)] = parameters["b"+str(i)] - learning_rate * grads["db"+str(i)]
 	return parameters
 
+
 # 预测结果是否准确
 def predict(parameters,XT,YT):
 	# 向前传播
 	AS,ZS = L_model_forward(XT,parameters)
 	# Y的预测值
 	YP = AS[len(AS)-1]
-	YP = np.array([0 if i <= 0.5 else 1 for i in np.squeeze(YP)])
+	for i in range(YP.shape[1]):
+		if YP[0,i] < 0.5:
+			YP[0,i] = 0
+		else:
+			YP[0,i] = 1
 	# 和测试结果之间的精度差距
 	accuracy = format(100 - np.mean(np.abs(YP - YT)) * 100)
 	return YP,accuracy
@@ -196,16 +205,14 @@ def nn_model(X,Y,XT,YT,structure,num_interations,learning_rate,print_cost = Fals
 		costs.append(cost)
 		# 反向传播
 		grads = L_model_backward(AS,ZS,Y,parameters)
-		print(grads["dW2"])
-		print(grads["db2"])
 		# 更新参数
 		parameters = update_parameters(parameters,grads,learning_rate)
 		# 打印输出 
 		if print_cost and i % 10 == 0:
 			print("cost:"+str(cost)+"  interation times:"+str(i))
 		# 打印测试结果
-		if i % 10 == 0:
-			YP,accuracy = predict(parameters,XT,YT)
+		if print_accu and i % 10 == 0:
+			YP,accuracy = predict(parameters,X,Y)
 			print("accuracy:"+str(accuracy)+"%")
 			accuracies.append(accuracy)
 	# 返回最终参数，cost和精度
