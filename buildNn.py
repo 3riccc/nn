@@ -1,0 +1,155 @@
+import numpy as np
+
+
+def sigmoid(Z):
+	A = 1./(1.+np.exp(-Z))
+	cache = Z
+	return A,cache
+
+def relu(Z):
+	A = np.maximum(0,Z)
+	assert(A.shape == Z.shape)
+	cache = Z
+	return A,cache
+def relu_backward(dA, cache):
+	"""
+	Implement the backward propagation for a single RELU unit.
+	Arguments:
+	dA -- post-activation gradient, of any shape
+	cache -- 'Z' where we store for computing backward propagation efficiently
+	Returns:
+	dZ -- Gradient of the cost with respect to Z
+	"""
+	Z = cache
+	dZ = np.array(dA, copy=True) # just converting dz to a correct object.
+
+	# When z <= 0, you should set dz to 0 as well. 
+	dZ[Z <= 0] = 0
+
+	assert (dZ.shape == Z.shape)
+
+	return dZ
+def sigmoid_backward(dA, cache):
+	"""
+	Implement the backward propagation for a single SIGMOID unit.
+	Arguments:
+	dA -- post-activation gradient, of any shape
+	cache -- 'Z' where we store for computing backward propagation efficiently
+	Returns:
+	dZ -- Gradient of the cost with respect to Z
+	"""
+	Z = cache
+
+	s = 1/(1+np.exp(-Z))
+	dZ = dA * s * (1-s)
+	assert (dZ.shape == Z.shape)
+	return dZ
+
+# 参数初始化
+def initialize_parameters_deep(X,layer_dims):
+	# 第一层参数和训练样本中的特征数量相关，因此插入
+	layer_dims.insert(0,X.shape[0])
+	# 层数
+	# 如layer_dims = [2,3,4,5,1]表示
+	# 从第一个隐藏层开始，每个隐藏层分别有2,3，4，5，1个神经元
+	L = len(layer_dims)
+	# 参数
+	parameters = {}
+	for i in range(1,L):
+		# 初始化向量w和b
+		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.01
+		parameters["b"+str(i)] = np.zeros((layer_dims[i],1))
+
+		# 确认形状
+		assert(parameters["W"+str(i)].shape == (layer_dims[i],layer_dims[i-1]))
+		assert(parameters["b"+str(i)].shape == (layer_dims[i],1))
+
+	return parameters
+
+# 向前传播
+def linear_forward(A,W,b):
+	Z = np.dot(W,A) + b
+	# 确认形状
+	assert(Z.shape == (W.shape[0],1))
+	cache = (A,W,b)
+	return Z,cache
+
+# 向前传播并激活
+def linear_activation_forward(A_prev,W,b,activation):
+	# 先算出Z
+	Z = np.dot(W,A_prev)+b
+	# 然后根据不同的激活函数计算A
+	if activation == "sigmoid":
+		A,activation_cache = sigmoid(Z)
+	elif activation == "relu":
+		A,activation_cache = relu(Z)
+	
+	return A,activation_cache
+
+# 在整个模型中向前传播，需要调用前面的函数
+def L_model_forward(X,parameters):
+	# 准备缓存每一层的Z
+	ZS = []
+	AS = []
+	# 最开始的A=X
+	AS.append(X)
+	# 层数 
+	L = int(len(parameters) / 2)
+	# 按层传播
+	for i in range(1,L):
+		A_prev = AS[len(AS)-1]
+		A,Z = linear_activation_forward(A_prev,parameters["W"+str(i)],parameters["b"+str(i)],"relu");
+		AS.append(A)
+		ZS.append(Z)
+	# 最后一层必须用sigmoid
+	A_prev = AS[len(AS)-1]
+	A,Z = linear_activation_forward(A_prev,parameters["W"+str(L)],parameters["b"+str(L)],"sigmoid");
+	AS.append(A)
+	ZS.append(Z)
+
+	return AS,ZS
+
+# 计算cost
+def compute_cost(AL,Y):
+	# 样本数量
+	m = Y.shape[1]
+	cost = -1./m * np.sum(Y * np.log(AL) + (1 - Y) * np.log(1 - AL))
+	# 压缩维数
+	cost = np.squeeze(cost)
+	assert(cost.shape == ())
+
+	return cost
+
+# 一个层的反向传播
+def linear_backward(dZ,A_prev):
+	m = A_prev.shape[1]
+
+	dW = 1./m * np.dot(Z,A_prev.T)
+	db = 1./m * np.sum(np.matrix(dZ), axis = 1)
+	dA_prev = np.dot(W.T,dZ)
+
+	return dA_prev,dW,db
+
+def last_backward(AL,Y):
+	dAL = - (np.divide(Y, AL) - np.divide(1 - Y, 1 - AL))
+	
+	return dA_prev,dW,db
+# 反向传播
+def linear_activation_backward(dA,cache,activation):
+	return
+
+
+# 整体的反向传播
+def L_model_backward(AS,Y):
+	# 记录导数
+	grads = {}
+	# 层数,AS包含输入层，所以AS-1是所有神经元层数
+	L = len(AS) - 1
+	# 最后一层AL
+	AL = AS[L]
+
+	# 计算最后一层的导数
+	grads["dA"+str(L)],grads["dW"+str(L)],grads["db"+str(L)] = 
+
+	return 1,2,3
+
