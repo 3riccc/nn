@@ -14,7 +14,6 @@ with open('res/YT1.pickle','rb') as f4:
 
 # -------------------------以上代码获取数据，不必管-------------------------
 
-# parameters = bn.initialize_parameters_deep(X,[2,3,1])
 
 # # 向前传播
 # AS,ZS = bn.L_model_forward(X,parameters)
@@ -24,7 +23,35 @@ with open('res/YT1.pickle','rb') as f4:
 # grads = bn.L_model_backward(AS,ZS,Y,parameters)
 # # 更新参数
 # parameters = bn.update_parameters(parameters,grads,0.001)
-parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,[42,50,1],1000,0.7,True,True)
+layers = [
+	{
+		"layer_num":5,
+		"layer_activation":"relu"
+	},
+	{
+		"layer_num":8,
+		"layer_activation":"tanh"
+	},{
+		"layer_num":4,
+		"layer_activation":"relu"
+	},{
+		"layer_num":4,
+		"layer_activation":"relu"
+	},
+	{
+		"layer_num":1,
+		"layer_activation":"sigmoid"
+	}
+]
+# parameters = bn.initialize_parameters_deep(X,layers)
+# AS,ZS = bn.L_model_forward(X,parameters,layers)
+# cost = bn.compute_cost(AS[len(AS)-1],Y,layers[len(layers)-1]["layer_activation"])
+# # 反向传播
+# grads = bn.L_model_backward(AS,ZS,Y,parameters,layers)
+# parameters = bn.update_parameters(parameters,grads,0.001)
+
+
+parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,layers,500,0.4,True,True)
 
 
 
