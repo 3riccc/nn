@@ -2,10 +2,12 @@ import numpy as np
 import buildNn as bn
 import pickle
 import matplotlib.pyplot as plt
+# X.shape 必须是(nx,m) ，其中nx是特征数量，m是样本数量，XT相同
 with open('res/X1.pickle','rb') as f1:
 	X = pickle.load(f1)
 with open('res/XT1.pickle','rb') as f2:
 	XT = pickle.load(f2)
+# Y.shape 必须是(1,m) ，其中m是样本数量，YT相同
 with open('res/Y1.pickle','rb') as f3:
 	Y = pickle.load(f3)
 with open('res/YT1.pickle','rb') as f4:
@@ -26,32 +28,32 @@ with open('res/YT1.pickle','rb') as f4:
 layers = [
 	{
 		"layer_num":5,
-		"layer_activation":"relu"
-	},
-	{
-		"layer_num":8,
 		"layer_activation":"tanh"
 	},{
-		"layer_num":4,
-		"layer_activation":"relu"
+		"layer_num":5,
+		"layer_activation":"tanh"
 	},{
-		"layer_num":4,
-		"layer_activation":"relu"
+		"layer_num":5,
+		"layer_activation":"tanh"
 	},
 	{
 		"layer_num":1,
 		"layer_activation":"sigmoid"
 	}
 ]
-# parameters = bn.initialize_parameters_deep(X,layers)
-# AS,ZS = bn.L_model_forward(X,parameters,layers)
-# cost = bn.compute_cost(AS[len(AS)-1],Y,layers[len(layers)-1]["layer_activation"])
-# # 反向传播
-# grads = bn.L_model_backward(AS,ZS,Y,parameters,layers)
-# parameters = bn.update_parameters(parameters,grads,0.001)
+
+# X = np.array([[1,2,3],[4,5,6]])
+# XT = np.array([[2,4],[7,8]])
+# Y = np.array([[1,1,0]])
+# YT = np.array([[0,1]])
 
 
-parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,layers,500,0.4,True,True)
+# 归一化
+X,us,sigma2 = bn.normalizing_train(X)
+XT = bn.normalizing_test(XT,us,sigma2)
+
+
+parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,layers,1000,0.04,True,True)
 
 
 

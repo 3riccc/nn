@@ -18,12 +18,6 @@ def relu(Z):
 	return A,cache
 
 def relu_backward(dA, Z):
-	# dZ = np.array(dA, copy=True) # just converting dz to a correct object.
-	# dZ[Z <= 0] = 0
-
-	# assert (dZ.shape == Z.shape)
-
-	# return dZ
 	dZ =  dA * np.minimum(np.maximum(0,Z),1)
 	return dZ
 
@@ -53,7 +47,7 @@ def initialize_parameters_deep(X,structure):
 	parameters = {}
 	for i in range(1,L):
 		# 初始化向量w和b
-		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.0001
+		parameters["W"+str(i)] = np.random.randn(layer_dims[i],layer_dims[i-1]) * 0.001
 		parameters["b"+str(i)] = np.zeros((layer_dims[i],1))
 
 		# 确认形状
@@ -62,13 +56,7 @@ def initialize_parameters_deep(X,structure):
 
 	return parameters
 
-# 向前传播
-def linear_forward(A,W,b):
-	Z = np.dot(W,A) + b
-	# 确认形状
-	assert(Z.shape == (W.shape[0],1))
-	cache = (A,W,b)
-	return Z,cache
+
 
 # 向前传播并激活
 def linear_activation_forward(A_prev,W,b,activation):
@@ -81,6 +69,7 @@ def linear_activation_forward(A_prev,W,b,activation):
 		A,activation_cache = relu(Z)
 	elif activation == "tanh":
 		A,activation_cache = tanh(Z)
+	
 	
 	return A,activation_cache
 
@@ -195,6 +184,35 @@ def predict(parameters,XT,YT,layers):
 	accuracy = format(100 - np.mean(np.abs(YP - YT)) * 100)
 	return YP,accuracy
 
+# 训练集归一化
+def normalizing_train(X):
+	us = np.sum(X,axis=1).reshape(X.shape[0],1)
+	us = us / X.shape[1]
+	assert(us.shape == (X.shape[0],1))
+	# x-u ，放置到原点附近
+	X = X-us
+	# 除以方差，进行缩放
+	sigma2 = np.sum(X**2,axis=1).reshape(X.shape[0],1) / X.shape[1]
+	assert(sigma2.shape == (X.shape[0],1))
+	# 如果sigma2中有0，则换成1
+	if 0 in sigma2:
+		for i in range(sigma2.shape[0]):
+			if sigma2[i,0] == 0:
+				sigma2[i,0] = 1
+
+	np.seterr(divide='ignore', invalid='ignore')
+	X = X / sigma2
+	# 返回归一化后的X，u，sigma2
+	return X,us,sigma2
+
+# 测试集归一化
+def normalizing_test(XT,us,sigma2):
+	XT = XT-us
+	np.seterr(divide='ignore', invalid='ignore')
+	XT = XT / sigma2
+	return XT
+
+
 def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,print_accu=False):
 	# 初始化
 	parameters = initialize_parameters_deep(X,layers)
@@ -216,7 +234,7 @@ def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,p
 			print("cost:"+str(cost)+"  interation times:"+str(i))
 		# 打印测试结果
 		if print_accu and i % 10 == 0:
-			YP,accuracy = predict(parameters,X,Y,layers)
+			YP,accuracy = predict(parameters,XT,YT,layers)
 			print("accuracy:"+str(accuracy)+"%")
 			accuracies.append(accuracy)
 	# 返回最终参数，cost和精度
