@@ -209,6 +209,11 @@ def normalizing_train(X):
 def normalizing_test(XT,us,sigma2):
 	XT = XT-us
 	np.seterr(divide='ignore', invalid='ignore')
+	# 如果sigma2中有0，则换成1
+	if 0 in sigma2:
+		for i in range(sigma2.shape[0]):
+			if sigma2[i,0] == 0:
+				sigma2[i,0] = 1
 	XT = XT / sigma2
 	return XT
 
@@ -234,8 +239,11 @@ def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,p
 			print("cost:"+str(cost)+"  interation times:"+str(i))
 		# 打印测试结果
 		if print_accu and i % 10 == 0:
-			YP,accuracy = predict(parameters,XT,YT,layers)
-			print("accuracy:"+str(accuracy)+"%")
-			accuracies.append(accuracy)
+			YP,accuracy_train = predict(parameters,X,Y,layers)
+			YP,accuracy_test = predict(parameters,XT,YT,layers)
+			print("train set accuracy:"+str(accuracy_train)+"%")
+			print("test set accuracy:"+str(accuracy_test)+"%")
+			train_accuracies.append(accuracy_train)
+			test_accuracies.append(accuracy_test)
 	# 返回最终参数，cost和精度
-	return parameters,costs,accuracies
+	return parameters,costs,train_accuracies,test_accuracies

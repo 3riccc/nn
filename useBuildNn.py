@@ -27,17 +27,11 @@ with open('res/YT1.pickle','rb') as f4:
 # parameters = bn.update_parameters(parameters,grads,0.001)
 layers = [
 	{
-		"layer_num":5,
-		"layer_activation":"tanh"
-	},{
-		"layer_num":5,
-		"layer_activation":"tanh"
-	},{
-		"layer_num":5,
+		"layer_num":50,
 		"layer_activation":"tanh"
 	},
 	{
-		"layer_num":1,
+		"layer_num":20,
 		"layer_activation":"sigmoid"
 	}
 ]
@@ -53,17 +47,22 @@ X,us,sigma2 = bn.normalizing_train(X)
 XT = bn.normalizing_test(XT,us,sigma2)
 
 
-parameters,costs,accuracies = bn.nn_model(X,Y,XT,YT,layers,1000,0.04,True,True)
+parameters,costs,train_accuracies,test_accuracies = bn.nn_model(X,Y,XT,YT,layers,1000,0.04,True,True)
 
 
 
-plt.plot(accuracies)
-plt.ylabel('accuracies')
+plt.plot(train_accuracies)
+plt.ylabel('accuracies in train set')
+plt.xlabel('iterations / 10')
+plt.show()
+
+plt.plot(test_accuracies)
+plt.ylabel('accuracies in test set')
 plt.xlabel('iterations / 10')
 plt.show()
 
 # 测试集效果曲线
 plt.plot(costs)
-plt.ylabel('accuracies')
+plt.ylabel('costs')
 plt.xlabel('iterations / 10')
 plt.show()
