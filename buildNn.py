@@ -223,7 +223,8 @@ def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,p
 	parameters = initialize_parameters_deep(X,layers)
 	# 循环
 	costs = []
-	accuracies = []
+	train_accuracies = []
+	test_accuracies = []
 	for i in range(num_interations):
 		# 向前传播
 		AS,ZS = L_model_forward(X,parameters,layers)
