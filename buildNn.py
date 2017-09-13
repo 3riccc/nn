@@ -159,9 +159,12 @@ def L_model_backward(AS,ZS,Y,parameters,layers):
 	return grads
 
 # 更新参数
-def update_parameters(parameters,grads,learning_rate):
+# 更新的过程中，
+def update_parameters(parameters,grads,epoch_num,learning_rate0,decay_rate=0):
 	# 有多少层
 	L = int(len(grads) / 2)
+	# 计算衰减后的学习率
+	learning_rate = (1./(1.+decay_rate * epoch_num)) * learning_rate0
 	# 一层一层更新
 	for i in range(1,L+1):
 		parameters["W"+str(i)] = parameters["W"+str(i)] - learning_rate * grads["dW"+str(i)]
@@ -218,7 +221,7 @@ def normalizing_test(XT,us,sigma2):
 	return XT
 
 
-def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,print_accu=False):
+def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,decay_rate=0,print_cost = False,print_accu=False):
 	# 初始化
 	parameters = initialize_parameters_deep(X,layers)
 	# 循环
@@ -234,7 +237,7 @@ def nn_model(X,Y,XT,YT,layers,num_interations,learning_rate,print_cost = False,p
 		# 反向传播
 		grads = L_model_backward(AS,ZS,Y,parameters,layers)
 		# 更新参数
-		parameters = update_parameters(parameters,grads,learning_rate)
+		parameters = update_parameters(parameters,grads,i,learning_rate,decay_rate)
 		# 打印输出 
 		if print_cost and i % 10 == 0:
 			print("cost:"+str(cost)+"  interation times:"+str(i))

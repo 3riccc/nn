@@ -47,7 +47,7 @@ X,us,sigma2 = bn.normalizing_train(X)
 XT = bn.normalizing_test(XT,us,sigma2)
 
 
-parameters,costs,train_accuracies,test_accuracies = bn.nn_model(X,Y,XT,YT,layers,5000,0.01,True,True)
+parameters,costs,train_accuracies,test_accuracies = bn.nn_model(X,Y,XT,YT,layers,5000,0.01,0.01,True,True)
 
 
 
